@@ -4,9 +4,9 @@ namespace MediatREvent;
 
 public interface IDomainEvents
 {
-    List<INotification> GetAllEvents();
-    void AddEvent(INotification item);
+    void AddEvent(INotification item); 
     void AddEventIfNoExist(INotification item);
-    void ClearAllEvents();
-    void Publish();
+    Task PublishAsync(INotification item);
+    Task PublishAsync<T>();
+    Task PublishAllAsync();
 }

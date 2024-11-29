@@ -9,7 +9,6 @@ public static class MediatRExtension
     {
         service.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetEntryAssembly()));
         service.AddSingleton<IDomainEvents, DomainEvents>();
-        //service.AddScoped<IDomainEvents, DomainEvents>();
         return service;
     }
 }

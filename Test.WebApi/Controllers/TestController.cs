@@ -16,7 +16,7 @@ public class TestController:ControllerBase
     public async Task<IActionResult> TestAsync()
     {
         events.AddEvent(new Entity(Guid.NewGuid(),"HelloWorld!"));
-        events.Publish();
+        await events.PublishAllAsync();
         return Ok();
     }
 }

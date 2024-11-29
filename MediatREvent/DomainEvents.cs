@@ -1,42 +1,68 @@
 ﻿using MediatR;
-using System.Reflection;
 
 namespace MediatREvent;
 
 public class DomainEvents : IDomainEvents
 {
-    private readonly List<INotification> DoaminEventList = new();
     private readonly IMediator mediator;
+    private readonly Dictionary<Type, List<INotification>> EventCenter = new Dictionary<Type, List<INotification>>();
 
     public DomainEvents(IMediator mediator)
     {
         this.mediator = mediator;
     }
-    public List<INotification> GetAllEvents()
-    {
-        return DoaminEventList;
-    }
+
     public void AddEvent(INotification item)
     {
-        var ass = Assembly.GetEntryAssembly()?.GetModules();
-        DoaminEventList.Add(item);
+        EventCenter.AddEvnet(item);
     }
     public void AddEventIfNoExist(INotification item)
     {
-        if (!DoaminEventList.Contains(item))
+        EventCenter.AddEvnetIfNoExist(item);
+    }
+
+    public async Task PublishAsync(INotification item)
+    {
+        if (EventCenter.TryGetValue(item.GetType(), out var events))
         {
-            DoaminEventList.Add(item);
+            if (events.Contains(item))
+            {
+                await mediator.Publish(item);
+                EventCenter.RemoveEvent(item);
+            }
         }
     }
-    public void ClearAllEvents()
+    public async Task PublishAsync<T>()
     {
-        DoaminEventList.Clear();
-    }
-    public void Publish()
-    {
-        foreach (var domainEvent in DoaminEventList)
+        if (EventCenter.TryGetValue(typeof(T), out var events))
         {
-            mediator.Publish(domainEvent);
+            foreach (var _event in events)
+            {
+                await mediator.Publish(_event);
+            }
         }
+        EventCenter.Remove(typeof(T));
+    }
+    public async Task PublishAllAsync()
+    {
+        var events = GetAllEvents();
+        foreach (var _event in events)
+        {
+            await mediator.Publish(_event);
+        }
+        ClearAllEvents();
+    }
+    private List<INotification> GetAllEvents()
+    {
+        List<INotification> events = new List<INotification>();
+        foreach (var notification in EventCenter.Values)
+        {
+            events.AddRange(notification);
+        }
+        return events;
+    }
+    private void ClearAllEvents()
+    {
+        EventCenter.Clear();
     }
 }
